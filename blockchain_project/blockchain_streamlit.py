@@ -5,25 +5,33 @@ from blockchain import Blockchain
 # Initialize blockchain
 blockchain = Blockchain()
 
-st.title("💸 Blockchain Donation Tracker")
-st.write("Record donations securely on a blockchain ledger.")
+# Streamlit app title
+st.title("Blockchain Donation Tracker")
 
-# Donation form
-with st.form("donation_form"):
-    donor_id = st.text_input("Donor ID")
-    donor_name = st.text_input("Donor Name")
-    amount = st.number_input("Donation Amount", min_value=1)
-    organization = st.text_input("Organization Name")
-    submitted = st.form_submit_button("Donate")
+# Add new block section
+st.subheader("Add a new block")
+proof_input = st.number_input("Enter proof for new block:", min_value=0, step=1)
+if st.button("Add Block"):
+    previous_hash = blockchain.hash(blockchain.last_block)
+    block = blockchain.new_block(proof=proof_input, previous_hash=previous_hash)
+    st.success("Block added successfully!")
+    st.json(block)
 
-    if submitted:
-        blockchain.new_donation(donor_id, donor_name, amount, organization)
-        block = blockchain.new_block(proof=12345)
-        st.success(f"✅ Donation recorded in block #{block['index']}")
+# Add transaction section
+st.subheader("Add a new transaction")
+sender = st.text_input("Sender")
+recipient = st.text_input("Recipient")
+amount = st.number_input("Amount", min_value=0.0, step=0.01)
 
-# Display blockchain
-if st.checkbox("Show full blockchain"):
-    for block in blockchain.chain:
-        st.write(f"### Block {block['index']}")
-        st.write(block)
-        st.write("---")
+if st.button("Add Transaction"):
+    if sender and recipient and amount > 0:
+        index = blockchain.new_transaction(sender, recipient, amount)
+        st.success(f"Transaction will be added to Block {index}")
+    else:
+        st.error("Please provide valid transaction details.")
+
+# Show blockchain
+st.subheader("Current Blockchain")
+for block in blockchain.chain:
+    st.write(f"Block {block['index']}")
+    st.json(block)
